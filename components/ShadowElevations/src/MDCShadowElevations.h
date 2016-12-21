@@ -78,6 +78,3 @@ CG_EXTERN const CGFloat MDCShadowElevationSnackbar;
 
 /** The shadow elevation of a sub menu (+1 for each additional sub menu). */
 CG_EXTERN const CGFloat MDCShadowElevationSubMenu;
-
-/** The shadow elevation of a switch. */
-CG_EXTERN const CGFloat MDCShadowElevationSwitch;
