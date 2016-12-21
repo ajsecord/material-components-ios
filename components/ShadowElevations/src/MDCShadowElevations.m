@@ -37,4 +37,3 @@ const CGFloat MDCShadowElevationSearchBarResting = 2.f;
 const CGFloat MDCShadowElevationSearchBarScrolled = 3.f;
 const CGFloat MDCShadowElevationSnackbar = 6.f;
 const CGFloat MDCShadowElevationSubMenu = 9.f;
-const CGFloat MDCShadowElevationSwitch = 1.f;
