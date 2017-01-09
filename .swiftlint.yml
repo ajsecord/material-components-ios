@@ -9,3 +9,5 @@ disabled_rules:
 
 force_cast: warning
 force_try: warning
+
+line_length: 100
