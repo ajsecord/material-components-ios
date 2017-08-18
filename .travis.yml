@@ -7,6 +7,7 @@ branches:
     - develop
     - stable
     - /^feature-.*$/
+    - release-candidate
 env:
   global:
   - LC_CTYPE=en_US.UTF-8
