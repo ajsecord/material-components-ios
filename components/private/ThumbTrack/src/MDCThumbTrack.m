@@ -36,6 +36,49 @@ static const CGFloat kValueLabelHeight = 48.f;
 static const CGFloat kValueLabelWidth = 0.81f * kValueLabelHeight;
 static const CGFloat kValueLabelFontSize = 12.f;
 
+// Coding keys for MDCSlider public properties.
+static NSString *const MDCThumbTrackPrimaryColorKey = @"MDCThumbTrackPrimaryColorKey";
+static NSString *const MDCThumbTrackThumbOffColorKey = @"MDCThumbTrackThumbOffColorKey";
+static NSString *const MDCThumbTrackThumbDisabledColorKey = @"MDCThumbTrackThumbDisabledColorKey";
+static NSString *const MDCThumbTrackTrackDisabledColorKey = @"MDCThumbTrackTrackDisabledColorKey";
+static NSString *const MDCThumbTrackNumDiscreteValuesKey = @"MDCThumbTrackNumDiscreteValuesKey";
+static NSString *const MDCThumbTrackValueKey = @"MDCThumbTrackValueKey";
+static NSString *const MDCThumbTrackMinimumValueKey = @"MDCThumbTrackMinimumValueKey";
+static NSString *const MDCThumbTrackMaximumValueKey = @"MDCThumbTrackMaximumValueKey";
+static NSString *const MDCThumbTrackThumbPositionKey = @"MDCThumbTrackThumbPositionKey";
+static NSString *const MDCThumbTrackThumbRadiusKey = @"MDCThumbTrackThumbRadiusKey";
+static NSString *const MDCThumbTrackThumbElevationKey = @"MDCThumbTrackThumbElevationKey";
+static NSString *const MDCThumbTrackThumbIsSmallerWhenDisabledKey = @"MDCThumbTrackThumbIsSmallerWhenDisabledKey";
+static NSString *const MDCThumbTrackThumbIsHollowAtStartKey = @"MDCThumbTrackThumbIsHollowAtStartKey";
+static NSString *const MDCThumbTrackThumbGrowsWhenDraggingKey = @"MDCThumbTrackThumbGrowsWhenDraggingKey";
+static NSString *const MDCThumbTrackThumbMaxRippleRadius = @"MDCThumbTrackThumbMaxRippleRadius";
+static NSString *const MDCThumbTrackShouldDisplayInkKey = @"MDCThumbTrackShouldDisplayInkKey";
+static NSString *const MDCThumbTrackShouldDisplayDiscreteDotsKey = @"MDCThumbTrackShouldDisplayDiscreteDotsKey";
+static NSString *const MDCThumbTrackShouldDisplayDiscreteValueLabelKey = @"MDCThumbTrackShouldDisplayDiscreteValueLabelKey";
+static NSString *const MDCThumbTrackShouldDisplayFilledTrackKey = @"MDCThumbTrackShouldDisplayFilledTrackKey";
+static NSString *const MDCThumbTrackDisabledTrackHasThumbGapsKey = @"MDCThumbTrackDisabledTrackHasThumbGapsKey";
+static NSString *const MDCThumbTrackTrackEndsAreRoundedKey = @"MDCThumbTrackTrackEndsAreRoundedKey";
+static NSString *const MDCThumbTrackTrackEndsAreInsetKey = @"MDCThumbTrackTrackEndsAreInsetKey";
+static NSString *const MDCThumbTrackFilledTrackAnchorValueKey = @"MDCThumbTrackFilledTrackAnchorValueKey";
+static NSString *const MDCThumbTrackThumbViewKey = @"MDCThumbTrackThumbViewKey";
+static NSString *const MDCThumbTrackContinuousUpdateEventsKey = @"MDCThumbTrackContinuousUpdateEventsKey";
+static NSString *const MDCThumbTrackPanningAllowedOnEntireControlKey = @"MDCThumbTrackPanningAllowedOnEntireControlKey";
+static NSString *const MDCThumbTrackTapsAllowedOnThumbKey = @"MDCThumbTrackTapsAllowedOnThumbKey";
+
+// Coding keys for MDCSlider instance variables.
+static NSString *const MDCThumbTrackThumbOnColorKey = @"MDCThumbTrackThumbOnColorKey";
+static NSString *const MDCThumbTrackTrackOnColorKey = @"MDCThumbTrackTrackOnColorKey";
+static NSString *const MDCThumbTrackClearColorKey = @"MDCThumbTrackClearColorKey";
+static NSString *const MDCThumbTrackTouchControllerKey = @"MDCThumbTrackTouchControllerKey";
+static NSString *const MDCThumbTrackTrackViewKey = @"MDCThumbTrackTrackViewKey";
+static NSString *const MDCThumbTrackTrackMaskLayerKey = @"MDCThumbTrackTrackMaskLayerKey";
+static NSString *const MDCThumbTrackTrackOnLayerKey = @"MDCThumbTrackTrackOnLayerKey";
+static NSString *const MDCThumbTrackDiscreteDotsKey = @"MDCThumbTrackDiscreteDotsKey";
+static NSString *const MDCThumbTrackValueLabelKey = @"MDCThumbTrackValueLabelKey";
+
+// Coding keys for MDCDiscreteDotView public properties.
+static NSString *const MDCDiscreteDotViewNumDiscreteDotsKey = @"MDCDiscreteDotViewNumDiscreteDotsKey";
+
 // Credit to the Beacon Tools iOS team for the idea for this implementations
 @interface MDCDiscreteDotView : UIView
 
@@ -48,9 +91,30 @@ static const CGFloat kValueLabelFontSize = 12.f;
 - (instancetype)init {
   self = [super init];
   if (self) {
-    self.backgroundColor = [UIColor clearColor];
+    [self commonMDCDiscreteDotViewInit];
   }
   return self;
+}
+
+- (instancetype)initWithCoder:(NSCoder *)aDecoder {
+  self = [super initWithCoder:aDecoder];
+  if (self) {
+    [self commonMDCDiscreteDotViewInit];
+    if ([aDecoder containsValueForKey:MDCDiscreteDotViewNumDiscreteDotsKey]) {
+      _numDiscreteDots =
+          (NSUInteger)[aDecoder decodeIntegerForKey:MDCDiscreteDotViewNumDiscreteDotsKey];
+    }
+  }
+  return self;
+}
+
+- (void)encodeWithCoder:(NSCoder *)aCoder {
+  [super encodeWithCoder:aCoder];
+  [aCoder encodeInteger:_numDiscreteDots forKey:MDCDiscreteDotViewNumDiscreteDotsKey];
+}
+
+- (void)commonMDCDiscreteDotViewInit {
+  self.backgroundColor = [UIColor clearColor];
 }
 
 - (void)setFrame:(CGRect)frame {
@@ -114,7 +178,6 @@ static inline CGFloat DistanceFromPointToPoint(CGPoint point1, CGPoint point2) {
   CAShapeLayer *_trackMaskLayer;
   CALayer *_trackOnLayer;
   MDCDiscreteDotView *_discreteDots;
-  BOOL _shouldDisplayInk;
   MDCNumericValueLabel *_valueLabel;
   UIPanGestureRecognizer *_dummyPanRecognizer;
 
@@ -135,69 +198,190 @@ static inline CGFloat DistanceFromPointToPoint(CGPoint point1, CGPoint point2) {
 - (instancetype)initWithFrame:(CGRect)frame onTintColor:(UIColor *)onTintColor {
   self = [super initWithFrame:frame];
   if (self) {
-    self.userInteractionEnabled = YES;
-    [super setMultipleTouchEnabled:NO];  // We only want one touch event at a time
-    _continuousUpdateEvents = YES;
-    _lastDispatchedValue = _value;
-    _maximumValue = 1;
-    _trackHeight = kDefaultTrackHeight;
-    _thumbRadius = kDefaultThumbRadius;
-    _filledTrackAnchorValue = kDefaultFilledTrackAnchorValue;
-    _shouldDisplayInk = YES;
-
-    // Default thumb view.
-    CGRect thumbFrame = CGRectMake(0, 0, self.thumbRadius * 2, self.thumbRadius * 2);
-    _thumbView = [[MDCThumbView alloc] initWithFrame:thumbFrame];
-    _thumbView.borderWidth = kDefaultThumbBorderWidth;
-    _thumbView.cornerRadius = self.thumbRadius;
-    _thumbView.layer.zPosition = 1;
-    [self addSubview:_thumbView];
-
-    _trackView = [[UIView alloc] init];
-    _trackView.userInteractionEnabled = NO;
-    _trackMaskLayer = [CAShapeLayer layer];
-    _trackMaskLayer.fillRule = kCAFillRuleEvenOdd;
-    _trackView.layer.mask = _trackMaskLayer;
-
-    _trackOnLayer = [CALayer layer];
-    [_trackView.layer addSublayer:_trackOnLayer];
-
-    [self addSubview:_trackView];
-
-    // Set up ink layer.
-    _touchController = [[MDCInkTouchController alloc] initWithView:_thumbView];
-    _touchController.delegate = self;
-
-    [_touchController addInkView];
-
-    _touchController.defaultInkView.inkStyle = MDCInkStyleUnbounded;
-
-    // Set colors.
-    if (onTintColor == nil) {
-      onTintColor = [UIColor blueColor];
-    }
-    self.primaryColor = onTintColor;
-    _clearColor = [UIColor colorWithWhite:1.0f alpha:0.0f];
-
-    // We add this UIPanGestureRecognizer to our view so that any superviews of the thumb track know
-    // when we are dragging the thumb track, and can treat it accordingly. Specifically, without
-    // this if a ThumbTrack is contained within a UIScrollView, the scroll view will cancel any
-    // touch events sent to the thumb track whenever the view is scrolling, regardless of whether or
-    // not we're in the middle of dragging the thumb. Adding a dummy gesture recognizer lets the
-    // scroll view know that we are in the middle of dragging, so those touch events shouldn't be
-    // cancelled.
-    //
-    // Note that an alternative to this would be to set canCancelContentTouches = NO on the
-    // UIScrollView, but because we can't guarantee that the thumb track will always be contained in
-    // scroll views configured like that, we have to handle it within the thumb track.
-    _dummyPanRecognizer = [[UIPanGestureRecognizer alloc] initWithTarget:self action:nil];
-    _dummyPanRecognizer.cancelsTouchesInView = NO;
-    [self updateDummyPanRecognizerTarget];
-
-    [self setValue:_minimumValue animated:NO];
+    [self commonSliderInitWithOnTintColor:onTintColor];
   }
   return self;
 }
+- (instancetype)initWithCoder:(NSCoder *)aDecoder {
+  self = [super initWithCoder:aDecoder];
+  if (self) {
+    [self commonSliderInitWithOnTintColor:nil];
+
+    // Public properties.
+    if ([aDecoder containsValueForKey:MDCThumbTrackPrimaryColorKey]) {
+      _primaryColor = [aDecoder decodeObjectForKey:MDCThumbTrackPrimaryColorKey];
+    }
+    if ([aDecoder containsValueForKey:MDCThumbTrackThumbOffColorKey]) {
+      _thumbOffColor = [aDecoder decodeObjectForKey:MDCThumbTrackThumbOffColorKey];
+    }
+    if ([aDecoder containsValueForKey:MDCThumbTrackThumbOnColorKey]) {
+      _thumbOnColor = [aDecoder decodeObjectForKey:MDCThumbTrackThumbOnColorKey];
+    }
+    if ([aDecoder containsValueForKey:MDCThumbTrackThumbDisabledColorKey]) {
+      _thumbDisabledColor = [aDecoder decodeObjectForKey:MDCThumbTrackThumbDisabledColorKey];
+    }
+    if ([aDecoder containsValueForKey:MDCThumbTrackTrackDisabledColorKey]) {
+      _trackDisabledColor = [aDecoder decodeObjectForKey:MDCThumbTrackTrackDisabledColorKey];
+    }
+    if ([aDecoder containsValueForKey:MDCThumbTrackNumDiscreteValuesKey]) {
+      _numDiscreteValues = (NSUInteger)[aDecoder decodeIntegerForKey:MDCThumbTrackNumDiscreteValuesKey];
+    }
+    if ([aDecoder containsValueForKey:MDCThumbTrackValueKey]) {
+      _value = (CGFloat)[aDecoder decodeDoubleForKey:MDCThumbTrackValueKey];
+    }
+    if ([aDecoder containsValueForKey:MDCThumbTrackMinimumValueKey]) {
+      _minimumValue = (CGFloat)[aDecoder decodeDoubleForKey:MDCThumbTrackMinimumValueKey];
+    }
+    if ([aDecoder containsValueForKey:MDCThumbTrackMaximumValueKey]) {
+      _maximumValue = (CGFloat)[aDecoder decodeDoubleForKey:MDCThumbTrackMaximumValueKey];
+    }
+    if ([aDecoder containsValueForKey:MDCThumbTrackThumbPositionKey]) {
+      _thumbPosition = (CGFloat)[aDecoder decodeDoubleForKey:MDCThumbTrackThumbPositionKey];
+    }
+    if ([aDecoder containsValueForKey:MDCThumbTrackKey]) {
+      _thumbRadius = (CGFloat)[aDecoder decodeDoubleForKey:MDCThumbTrackThumbRadiusKey];
+    }
+    if ([aDecoder containsValueForKey:MDCThumbTrackThumbElevationKey]) {
+      _thumbElevation = (CGFloat)[aDecoder decodeDoubleForKey:MDCThumbTrackThumbElevationKey];
+    }
+    if ([aDecoder containsValueForKey:MDCThumbTrackThumbIsSmallerWhenDisabledKey]) {
+      _thumbIsSmallerWhenDisabled = [aDecoder decodeBoolForKey:MDCThumbTrackThumbIsSmallerWhenDisabledKey];
+    }
+    if ([aDecoder containsValueForKey:MDCThumbTrackThumbIsHollowAtStartKey]) {
+      _thumbIsHollowAtStart = [aDecoder decodeBoolForKey:MDCThumbTrackThumbIsHollowAtStartKey];
+    }
+    if ([aDecoder containsValueForKey:MDCThumbTrackThumbGrowsWhenDraggingKey]) {
+      _thumbGrowsWhenDragging = [aDecoder decodeBoolForKey:MDCThumbTrackThumbGrowsWhenDraggingKey];
+    }
+    if ([aDecoder containsValueForKey:MDCThumbTrackThumbMaxRippleRadius]) {
+      _thumbMaxRippleRadius = (CGFloat)[aDecoder decodeDoubleForKey:MDCThumbTrackThumbMaxRippleRadius];
+    }
+    if ([aDecoder containsValueForKey:MDCThumbTrackShouldDisplayInkKey]) {
+      _shouldDisplayInk = [aDecoder decodeBoolForKey:MDCThumbTrackShouldDisplayInkKey];
+    }
+    if ([aDecoder containsValueForKey:MDCThumbTrackShouldDisplayDiscreteDotsKey]) {
+      _shouldDisplayDiscreteDots = [aDecoder decodeBoolForKey:MDCThumbTrackShouldDisplayDiscreteDotsKey];
+    }
+    if ([aDecoder containsValueForKey:MDCThumbTrackShouldDisplayDiscreteValueLabelKey]) {
+      _shouldDisplayDiscreteValueLabel = [aDecoder decodeBoolForKey:MDCThumbTrackShouldDisplayDiscreteValueLabelKey];
+    }
+    if ([aDecoder containsValueForKey:MDCThumbTrackShouldDisplayFilledTrackKey]) {
+      _shouldDisplayFilledTrack = [aDecoder decodeBoolForKey:MDCThumbTrackShouldDisplayFilledTrackKey];
+    }
+    if ([aDecoder containsValueForKey:MDCThumbTrackDisabledTrackHasThumbGapsKey]) {
+      _disabledTrackHasThumbGaps = [aDecoder decodeBoolForKey:MDCThumbTrackDisabledTrackHasThumbGapsKey];
+    }
+    if ([aDecoder containsValueForKey:MDCThumbTrackTrackEndsAreRoundedKey]) {
+      _trackEndsAreRounded = [aDecoder decodeBoolForKey:MDCThumbTrackTrackEndsAreRoundedKey];
+    }
+    if ([aDecoder containsValueForKey:MDCThumbTrackTrackEndsAreInsetKey]) {
+      _trackEndsAreInset = [aDecoder decodeBoolForKey:MDCThumbTrackTrackEndsAreInsetKey];
+    }
+    if ([aDecoder containsValueForKey:MDCThumbTrackFilledTrackAnchorValueKey]) {
+      _filledTrackAnchorValue = (CGFloat)[aDecoder decodeDoubleForKey:MDCThumbTrackFilledTrackAnchorValueKey];
+    }
+    if ([aDecoder containsValueForKey:MDCThumbTrackThumbViewKey]) {
+      _thumbView = [aDecoder decodeObjectForKey:MDCThumbTrackThumbViewKey];
+    }
+    if ([aDecoder containsValueForKey:MDCThumbTrackContinuousUpdateEventsKey]) {
+      _continuousUpdateEvents = [aDecoder decodeBoolForKey:MDCThumbTrackContinuousUpdateEventsKey];
+    }
+    if ([aDecoder containsValueForKey:MDCThumbTrackPanningAllowedOnEntireControlKey]) {
+      _panningAllowedOnEntireControl = [aDecoder decodeBoolForKey:MDCThumbTrackPanningAllowedOnEntireControlKey];
+    }
+    if ([aDecoder containsValueForKey:MDCThumbTrackTapsAllowedOnThumbKey]) {
+      _tapsAllowedOnThumb = [aDecoder decodeBoolForKey:MDCThumbTrackTapsAllowedOnThumbKey];
+    }
+
+    // Instance variables
+    if ([aDecoder containsValueForKey:MDCThumbTrackThumbOnColorKey]) {
+      _thumbOnColor = [aDecoder decodeObjectForKey:MDCThumbTrackThumbOnColorKey];
+    }
+    if ([aDecoder containsValueForKey:MDCThumbTrackTrackOnColorKey]) {
+      _trackOnColor = [aDecoder decodeObjectForKey:MDCThumbTrackTrackOnColorKey];
+    }
+    if ([aDecoder containsValueForKey:MDCThumbTrackClearColorKey]) {
+      _clearColor = [aDecoder decodeObjectForKey:MDCThumbTrackClearColorKey];
+    }
+    if ([aDecoder containsValueForKey:MDCThumbTrackTrackViewKey]) {
+      _trackView = [aDecoder decodeObjectForKey:MDCThumbTrackTrackViewKey];
+    }
+
+    MDCInkTouchController *_touchController;
+    CAShapeLayer *_trackMaskLayer;
+    CALayer *_trackOnLayer;
+    MDCDiscreteDotView *_discreteDots;
+    BOOL _shouldDisplayInk;
+    MDCNumericValueLabel *_valueLabel;
+    UIPanGestureRecognizer *_dummyPanRecognizer;
+
+  }
+  return self;
+}
+
+- (void)commonSliderInitWithOnTintColor:(UIColor *)onTintColor {
+  self.userInteractionEnabled = YES;
+  [super setMultipleTouchEnabled:NO];  // We only want one touch event at a time
+  _continuousUpdateEvents = YES;
+  _lastDispatchedValue = _value;
+  _maximumValue = 1;
+  _trackHeight = kDefaultTrackHeight;
+  _thumbRadius = kDefaultThumbRadius;
+  _filledTrackAnchorValue = kDefaultFilledTrackAnchorValue;
+  _shouldDisplayInk = YES;
+
+  // Default thumb view.
+  CGRect thumbFrame = CGRectMake(0, 0, self.thumbRadius * 2, self.thumbRadius * 2);
+  _thumbView = [[MDCThumbView alloc] initWithFrame:thumbFrame];
+  _thumbView.borderWidth = kDefaultThumbBorderWidth;
+  _thumbView.cornerRadius = self.thumbRadius;
+  _thumbView.layer.zPosition = 1;
+  [self addSubview:_thumbView];
+
+  _trackView = [[UIView alloc] init];
+  _trackView.userInteractionEnabled = NO;
+  _trackMaskLayer = [CAShapeLayer layer];
+  _trackMaskLayer.fillRule = kCAFillRuleEvenOdd;
+  _trackView.layer.mask = _trackMaskLayer;
+
+  _trackOnLayer = [CALayer layer];
+  [_trackView.layer addSublayer:_trackOnLayer];
+
+  [self addSubview:_trackView];
+
+  // Set up ink layer.
+  _touchController = [[MDCInkTouchController alloc] initWithView:_thumbView];
+  _touchController.delegate = self;
+
+  [_touchController addInkView];
+
+  _touchController.defaultInkView.inkStyle = MDCInkStyleUnbounded;
+
+  // Set colors.
+  if (onTintColor == nil) {
+    onTintColor = [UIColor blueColor];
+  }
+  self.primaryColor = onTintColor;
+  _clearColor = [UIColor colorWithWhite:1.0f alpha:0.0f];
+
+  // We add this UIPanGestureRecognizer to our view so that any superviews of the thumb track know
+  // when we are dragging the thumb track, and can treat it accordingly. Specifically, without
+  // this if a ThumbTrack is contained within a UIScrollView, the scroll view will cancel any
+  // touch events sent to the thumb track whenever the view is scrolling, regardless of whether or
+  // not we're in the middle of dragging the thumb. Adding a dummy gesture recognizer lets the
+  // scroll view know that we are in the middle of dragging, so those touch events shouldn't be
+  // cancelled.
+  //
+  // Note that an alternative to this would be to set canCancelContentTouches = NO on the
+  // UIScrollView, but because we can't guarantee that the thumb track will always be contained in
+  // scroll views configured like that, we have to handle it within the thumb track.
+  _dummyPanRecognizer = [[UIPanGestureRecognizer alloc] initWithTarget:self action:nil];
+  _dummyPanRecognizer.cancelsTouchesInView = NO;
+  [self updateDummyPanRecognizerTarget];
+
+  [self setValue:_minimumValue animated:NO];
+}
+
 
 - (void)layoutSubviews {
   [super layoutSubviews];
